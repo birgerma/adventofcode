@@ -44,6 +44,56 @@ def get_diagnostics(data):
     return gamma, epsilon, power
 
 
+
+test_data = ["00100","11110","10110","10111","10101","01111","00111","11100","10000","11001","00010","01010"]
+def test():
+    gamma, epsilon, power = get_diagnostics(test_data)
+    assert power==198
+    return int(power)
+
+def get_most_common(data,pos, equal='1'):
+    count=0
+    for d in data:
+        if(d[pos]=='1'):
+            count+=1
+    if (count==len(data)/2):
+        return equal
+    elif (count>len(data)/2):
+        return '1'
+    else:
+        return '0'
+
+def filter_bin(data, pos, keep):
+    new = []
+    for d in data:
+        if d[pos]==keep:
+            new.append(d)
+    return new
+
+def get_oxygen(data):
+    for pos in range(len(data[0])):
+        c = get_most_common(data,pos, equal='1')
+        data = filter_bin(data,pos,c)
+        if len(data)==1:
+            break
+    return data
+
+def get_co2(data):
+    for pos in range(len(data[0])):
+        c = get_most_common(data,pos, equal='1')
+        c = '1' if c=='0' else '0'
+        data = filter_bin(data,pos,c)
+        if len(data)==1:
+            break
+    return data
+
+
+def test2():
+    oxygen = int(get_oxygen(test_data)[0],2)
+    co2 = int(get_co2(test_data)[0],2)
+    return oxygen*co2
+
+
 def solve1():
     data = io.read_file_lines(data_file)
     gamma, epsilon, power = get_diagnostics(data)
@@ -51,22 +101,22 @@ def solve1():
 
 
 def solve2():
-    pass
+    data = io.read_file_lines(data_file)
+    oxygen = int(get_oxygen(data)[0],2)
+    co2 = int(get_co2(data)[0],2)
+    return oxygen*co2
 
 
-def test():
-    data = ["00100","11110","10110","10111","10101","01111","00111","11100","10000","11001","00010","01010"]
-    gamma, epsilon, power = get_diagnostics(data)
-    assert power==198
-    return int(power)
-
-print("Test solution:",test())
+assert test()==198
+assert test2()==230
+# print("Test solution:",test())
+# print("Test2 solution:",test2())
 
 
 sol1 = solve1()
-# # assert sol1==1581
+assert sol1==4147524
 print("Solution 1:", sol1)
 
-# sol2 = solve2()
-# # assert sol2==1618
-# print("Solution 2:", sol2)
+sol2 = solve2()
+assert sol2==3570354
+print("Solution 2:", sol2)
