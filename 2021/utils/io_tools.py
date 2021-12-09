@@ -1,6 +1,11 @@
 
 from .transform import as_ints
 
+def read_file(file_name):
+    with open(file_name) as f:
+        text = f.read()
+    return text
+
 def read_file_lines(file_name):
     with open(file_name) as f:
         lines = f.read()
