@@ -1,4 +1,6 @@
 import time
+                
+from collections import defaultdict
 
 import sys
 import math
@@ -60,7 +62,29 @@ def execution_time(func):
     print("Execution time:",end - start)
     return res
 
-
+def compute_basin_size(map, x0, y0, x1=None, y1=None, basin=None):
+    if (basin==None):
+        basin = defaultdict(lambda: 0)
+        basin = compute_basin_size(map, x0, y0, x0+1, y0, basin)
+        basin = compute_basin_size(map, x0, y0, x0-1, y0, basin)
+        basin = compute_basin_size(map, x0, y0, x0, y0+1, basin)
+        basin = compute_basin_size(map, x0, y0, x0, y0-1, basin)
+    else:
+        if x1<0 or y1<0:
+            return basin
+        elif y1>len(map) or x1>len(map[y1]):
+            return basin
+        else:
+            if map[y1][x1]==map[y0][x0]+1:
+                basin[(x1,y1)]=1
+                basin = compute_basin_size(map, x1, y1, x1+1, y1, basin)
+                basin = compute_basin_size(map, x1, y1, x1-1, y1, basin)
+                basin = compute_basin_size(map, x1, y1, x1, y1+1, basin)
+                basin = compute_basin_size(map, x1, y1, x1, y1-1, basin)
+            else:
+                return basin
+    return basin
+    
 test_data = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678"
 def test1():
     map = create_map(test_data)
@@ -75,15 +99,21 @@ def solve1():
     data = io.read_file(data_file)
     map = create_map(data)
     lows = find_low_points(map)
+    low = lows[0]
     risk = compute_risk(map, lows)
     return risk
 
-    pass
-
-
 def solve2():
-    # data = io.read_file_lines(data_file)
-    pass
+    # data = io.read_file(data_file)
+    data = test_data
+    map = create_map(data)
+    lows = find_low_points(map)
+    low = lows[0]
+    basin = compute_basin_size(map, low[0], low[1])
+    print("Low:", low[0], low[1])
+    print(basin)
+    # return risk
+
 
 
 # assert test()==
@@ -93,9 +123,9 @@ print("Test solution:",execution_time(test1))
 
 
 sol1 = solve1()
-# assert sol1==4147524
+assert sol1==575
 print("Solution 1:", sol1)
 
-# sol2 = solve2()
+sol2 = solve2()
 # assert sol2==3570354
-# print("Solution 2:", sol2)
+print("Solution 2:", sol2)
