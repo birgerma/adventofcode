@@ -1,12 +1,13 @@
 # importing sys
 import sys
+import os
  
 # adding common to the system path
 sys.path.insert(0, '../')
  
 from common.io import *
 
-DAY=2
+DAY = int(os.getcwd().split('/')[-1])
 
 def compute_result(expected, myMove):
   if expected==myMove:
@@ -28,7 +29,6 @@ def compute_points(expected, myMove):
     p=3
 
   p += 3*compute_result(expected, myMove)
-  #print(expected, myMove, p)
   return p
 
 def get_move(m):
