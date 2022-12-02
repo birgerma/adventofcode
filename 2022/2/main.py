@@ -6,6 +6,8 @@ sys.path.insert(0, '../')
  
 from common.io import *
 
+DAY=2
+
 def compute_result(expected, myMove):
   if expected==myMove:
     return 1 #Draw
@@ -41,21 +43,11 @@ def get_move(m):
     quit()
     
 def get_moves(move_str):
-  moves = move_str.split(" ")
-  expected = get_move(moves[0])
-  myMove = get_move(moves[1])
-  return expected, myMove
+    moves = move_str.split(" ")
+    expected = get_move(moves[0])
+    myMove = get_move(moves[1])
+    return expected, myMove
 
-# 5760 too low
-# 9809 too low
-def partA(move_list):
-    points = 0
-    for m in move_list:
-      expected, myMove = get_moves(m)
-      points += compute_points(expected, myMove)
-    assert points==11906
-    print("Total score:",points)
-  
 
 def get_lose_move(move):
   if move=='rock':
@@ -84,20 +76,29 @@ def get_counter_move(expected, code):
     print("ERROR 2")
     quit()
 
-def partB(move_list):
-    print("Solve for problem B day 2")
+def partA(move_list):
+    print("Solve for day {:d} part A".format(DAY))
     points = 0
     for m in move_list:
-      expected, _ = get_moves(m)
-      myMove = get_counter_move(expected, m.split(" ")[1])
+      expected, myMove = get_move(m[0]), get_move(m[1])
+      points += compute_points(expected, myMove)
+    assert points==11906
+    print("Total score:",points)
+  
+def partB(move_list):
+    print("Solve for day {:d} part B".format(DAY))
+    points = 0
+    for m in move_list:
+      expected = get_move(m[0])
+      myMove = get_counter_move(expected, m[1])
       points += compute_points(expected, myMove) 
     assert points==11186
     print("Points:", points)
+
 if __name__=='__main__':
-    print("Solve for problem 1 day 1")
     data = read_file('input.txt')
-    move_list = data.split('\n')
-    move_list = [i for i in move_list if i]
+    move_list = read_list_data('input.txt')
+    move_list = [i.split(" ") for i in move_list]
     partA(move_list)
     partB(move_list)
 
