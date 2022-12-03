@@ -42,13 +42,37 @@ def partA(item_list):
     print("Score:", score)
    # print(item_list)
 
-def partB(move_list):
-    print("Solve for day {:d} part B".format(DAY))
+def find_common(lst):
+    str_sets=[]
+    for str in lst:
+        str_sets.append(set(list(str)))
 
+    for e in list(lst[0]):
+        isCommon=True
+        for s in str_sets:
+            if e not in s:
+                isCommon=False
+                break
+        if isCommon:
+            return e
+def partB(item_list):
+    print("Solve for day {:d} part B".format(DAY))
+    badge_list = []
+    i=0
+    while i<len(item_list):
+        badge = find_common(item_list[i:i+3])
+        badge_list.append(badge)
+        i+=3
+
+    score = 0
+    for b in badge_list:
+        score+=compute_score(b)
+    assert score==2515
+    print("Score:", score)
 if __name__=='__main__':
     data_file = 'input.txt'
     #data = read_file('test.txt')
     item_list = read_list_data(data_file)
-    partA(item_list)
-    #partB(item_list)
+    #partA(item_list)
+    partB(item_list)
 
