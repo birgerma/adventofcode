@@ -93,19 +93,28 @@ def parse_input(input):
     ins = parse_instructions(ins)
     return pos, ins
 
-def do_move(state, fr, to, n):
+def do_move(state, fr, to, n, multimove=False):
     if n>0:
         #print("n>0, should to move")
         print("Should move from", fr, "to", to)
-        print("N columns:", len(state))
+        #print("N columns:", len(state))
         print("N boxes to move:", n)
         top_index = len(state[fr])-1
-        if top_index<0:
-            print_state(state)
-            #return do_move(state,fr,to, n-1)
         print("Top index:", top_index)
-        obj = state[fr][top_index]
-        state[fr] = state[fr][:-1]
+        #obj = state[fr][top_index]
+        objects = state[fr][top_index-n+1:]
+        print(objects)
+        if not multimove:
+            objects.reverse()
+        print(objects)
+        print(state[fr])
+        state[fr] = state[fr][:-n]
+        print(state[fr])
+        print("To:", state[to])
+        state[to]+=objects
+        print("To updated:", state[to])
+        return state
+        quit()
         state[to].append(obj)
         #print("Updated state:", state)
         return do_move(state, fr, to, n-1)
@@ -118,10 +127,10 @@ def print_state(state):
     for i in range(len(state)):
         print(i,":",state[i])
     print()
-def simulate_movements(state, instructions):
+def simulate_movements(state, instructions, multimove=False):
     print_state(state)
     for ins in instructions:
-        state = do_move(state, ins['from'], ins['to'], ins['n'])
+        state = do_move(state, ins['from'], ins['to'], ins['n'], multimove=multimove)
         print('New state:')
         print_state(state)
     return state
@@ -145,11 +154,24 @@ def partA(input):
 
 def partB(input):
     print("Solve for day {:d} part B".format(DAY))
+    pos, ins = parse_input(input)
+    #print(pos)
+    #print(ins)
+    print("Original state:")
+    print_state(pos)
+    #quit()
+    final_states = simulate_movements(pos, ins, multimove=True)
+    top_crates = []
+    for col in final_states:
+        top_crates.append(col[-1])
+    top_crate_string = "".join(top_crates)
+    assert top_crate_string == "VRQWPDSGP"
+    print(top_crate_string)
 
 if __name__=='__main__':
     data_file = 'input.txt'
     #data_file = 'test.txt'
     item_list = read_file(data_file)
     partA(item_list)
-    #partB(item_list)
+    partB(item_list)
 
