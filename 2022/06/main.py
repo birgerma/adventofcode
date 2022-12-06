@@ -12,9 +12,6 @@ DAY = int(os.getcwd().split('/')[-1])
 def find_start(stream, n=4):
     for i in range(0, len(stream)-4):
         s = set(stream[i:i+n])
-        print(stream[i:i+n])
-        print(s)
-        print(len(s))
         if len(s)==n:
             return i+n
 
