@@ -9,11 +9,17 @@ from common.io import *
 
 DAY = int(os.getcwd().split('/')[-1])
 
-def partA(input):
+def partA(input, expected=None):
     print("Solve for day {:d} part A".format(DAY))
+    answear = None
+    if expected:
+        assert answear==expected
 
-def partB(item_list):
+def partB(input, expected=None):
     print("Solve for day {:d} part B".format(DAY))
+    answear = None
+    if expected:
+        assert answear==expected
 
 if __name__=='__main__':
     data_file = 'input.txt'
