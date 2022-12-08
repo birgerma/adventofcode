@@ -135,9 +135,36 @@ def partA(input, expected=None):
         assert answear==expected
     print("Result:", answear)
 
+#42476859 Too high
 def partB(input, expected=None):
     print("Solve for day {:d} part B".format(DAY))
-    answear = None
+    file_tree = parse_input(input)
+    compute_size(file_tree)
+    total_space = 70000000
+    needed_space = 30000000
+    used_space = file_tree.get_node(file_tree.root).data
+    free_space = total_space-used_space
+    print("Used space:", used_space)
+    print("Free space:", free_space)
+    to_remove = needed_space-free_space
+    print("Need to remove:", to_remove)
+    dir_sizes = []
+    answear = 0
+    
+    for node in file_tree.all_nodes():
+        #print(node)
+        if node.is_leaf():
+            pass
+        else:
+            dir_sizes.append(node.data)
+        #elif node.data>=24933642:
+    dir_sizes = sorted(dir_sizes)
+    print(dir_sizes)
+    # 24 933 642
+    dir_sizes = list(filter(lambda x: x>=to_remove, dir_sizes))
+    print(dir_sizes)
+    answear = dir_sizes[0]
+    print("Result:", answear)
     if expected:
         assert answear==expected
 
@@ -146,5 +173,5 @@ if __name__=='__main__':
     #data_file = 'test.txt'
     item_list = read_list_data(data_file)
     partA(item_list, expected=1517599)
-    partB(item_list)
+    partB(item_list, expected=2481982)
 
