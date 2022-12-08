@@ -59,6 +59,7 @@ def find_visible_cols(data, res_mat={}, reverse=False):
         #print(right_visible)
         #print(visible_row)
         #quit()
+
         #print(data[row][::-1])
     is_visible.append([True]*len(data[0]))
     for row in is_visible:
@@ -102,9 +103,82 @@ def partA(input, expected=None):
     if expected:
         assert answear==expected
 
+def find_look_range_right(data, x0,y0):
+    score = 0
+    y=y0
+    height=data[y0][x0]
+    for x in range(x0+1, len(data[0])):
+        score+=1
+        if data[y][x]>=height:
+            break
+    return score
+
+def find_look_range_left(data, x0,y0):
+    score = 0
+    y=y0
+    height=data[y0][x0]
+    for x in range(x0-1, -1, -1):
+        score+=1
+        if data[y][x]>=height:
+            break
+    return score
+
+def find_look_range_up(data, x0, y0):
+    score = 0
+    x=x0
+    height = data[y0][x0]
+    for y in range(y0-1, -1,-1):
+        score+=1
+        if data[y][x]>=height:
+            break
+    return score
+
+def find_look_range_down(data,x0,y0):
+    score = 0
+    x=x0
+    height=data[y0][x0]
+    for y in range(y0+1, len(data)):
+        score+=1
+        #print("Down score: y=", y)
+        if data[y][x]>=height:
+            break
+    return score
+
+def find_scenic_score(data, x0,y0):
+    # Find score to the right:
+    right = find_look_range_right(data, x0, y0)
+    left = find_look_range_left(data, x0, y0)
+    up = find_look_range_up(data, x0, y0)
+    down = find_look_range_down(data, x0, y0)
+    #print("y=", y0, "x=", x0, "Right score=",right)
+    #print("y=", y0, "x=", x0, "Left score=",left)
+    #print("y=", y0, "x=", x0, "Up score=",up)
+    #print("y=", y0, "x=", x0, "Down score=",down)
+    return right*left*up*down
+
+def find_scenic_scores(data):
+    print_list(data)
+    #result = [[0]*len(data[0])]*len(data)
+    result = {}
+    for y in range(1,len(data)-1):
+        for x in range(1,len(data[0])-1):
+            #y=1
+            #x=2
+            score = find_scenic_score(data,x,y)
+            result[(y,x)]=score
+            print("x=",x, "y=",y,"score=", score)
+            #quit()
+
+            #print(data[y][x]," ", end="")
+        #print()
+    print_list(result.values())
+    return result
 def partB(input, expected=None):
     print("Solve for day {:d} part B".format(DAY))
-    answear = None
+    data = format_input(input)
+    scores = find_scenic_scores(data)
+    answear = max(scores.values())
+    print("Answear:", answear)
     if expected:
         assert answear==expected
 
@@ -112,6 +186,7 @@ if __name__=='__main__':
     data_file = 'input.txt'
     #data_file = 'test.txt'
     item_list = read_list_data(data_file)
-    partA(item_list, expected=1854)
-    partB(item_list)
+    #partA(item_list, expected=1854)
+    partB(item_list, expected=527340)
+
 
