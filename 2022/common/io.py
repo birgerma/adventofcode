@@ -9,3 +9,7 @@ def read_list_data(fname, splitter='\n'):
     data = data.split(splitter)
     data = [i for i in data if i] #Remove empty entries
     return data
+
+def print_list(lst):
+    for row in lst:
+        print(row)
