@@ -18,8 +18,8 @@ class Monkey:
         self.action = action
         self.is_included = 0
         self.my_index = Monkey.INDEX
+        self.custom_decrease_factor=0
         Monkey.INDEX+=1
-        print("Monkey", self.my_index, "created")
 
     def get_business(self):
         return self.is_included
@@ -53,33 +53,29 @@ class Monkey:
         return res
 
     def throw_item(self, item, monkeys):
-        #print("Is divisible by", self.test,"?")
         if item%self.test==0:
             next = self.action[0]
         else:
             next = self.action[1]
-        #print("Throw to monkey", next)
         monkeys[next].receive(item)
 
     def receive(self, item):
-        #print("Monkey receive item")
         self.items.append(item)
-        #print("New items:", self.items)
 
-    def do_round(self, monkeys):
+    def do_round(self, monkeys, worry_decrease=True):
         while self.has_items():
-            print("Monkey", self.my_index, "is included")
             self.is_included+=1
             item = self.pop_item()
-            #print("Should use item",item)
             new = self.do_operation(item)
-            #print("New item:", new)
-            new//=3
-            #print("New item level:", new)
+            if worry_decrease:
+                new//=3
+            else:
+                if self.custom_decrease_factor==0:
+                    self.custom_decrease_factor=1
+                    for m in monkeys:
+                        self.custom_decrease_factor*=m.test
+                new=new%self.custom_decrease_factor
             self.throw_item(new, monkeys)
-        #else:
-        #    print("Monkey", self.my_index, "is skipped")
-        #    pass
 
     def __str__(self):
         string = ""
@@ -116,12 +112,10 @@ def partA(input, expected=None):
     n_rounds = 20
     for round in range(n_rounds):
         for monkey in monkeys:
-            print("Round",round)
             monkey.do_round(monkeys)
 
     monkey_business = [m.get_business() for m in monkeys]
     monkey_business.sort(reverse=True)
-    print(monkey_business)
     answear = monkey_business[0]*monkey_business[1]
     print("Answear:", answear)
     if expected:
@@ -129,7 +123,16 @@ def partA(input, expected=None):
 
 def partB(input, expected=None):
     print("Solve for day {:d} part B".format(DAY))
-    answear = None
+    monkeys = format_input(input)
+    n_rounds = 10000
+    for round in range(n_rounds):
+        #print("Round:", round)
+        for monkey in monkeys:
+            monkey.do_round(monkeys,worry_decrease=False)
+    monkey_business = [m.get_business() for m in monkeys]
+    monkey_business.sort(reverse=True)
+    answear = monkey_business[0]*monkey_business[1]
+    print("Answear:", answear)
     if expected:
         assert answear==expected
 
@@ -138,5 +141,5 @@ if __name__=='__main__':
     #data_file = 'test.txt'
     item_list = read_list_data(data_file)
     partA(item_list, expected=99852)
-    partB(item_list)
+    partB(item_list, expected=25935263541)
 
