@@ -90,9 +90,23 @@ def partA(input, expected=None):
 
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
-    data = format_input(input)
+    g, vmap, S, E = format_input(input)
+    # Find all a:s
+    starts = []
+    for y in range(len(input)):
+        row = list(input[y])
+        for x in range(len(row)):
+            if row[x]=='a':
+                vid = vmap[(x,y)]
+                starts.append((x,y,vid))
 
-    answear = None
+    path=g.get_shortest_paths(S[2],to=E[2],mode=graph.OUT,output='vpath')
+    shortest_path = path[0]
+    for start in starts:
+        path=g.get_shortest_paths(start[2],to=E[2],mode=graph.OUT,output='vpath')
+        if len(path[0])>0 and len(path[0])<len(shortest_path):
+            shortest_path = path[0]
+    answear = len(shortest_path)-1
     if answear:
         print("Solution for day {:} part B:".format(DAY),answear)
     if expected:
@@ -123,6 +137,6 @@ if __name__=='__main__':
     if case == 'a' or case == 'all':
         partA(input, expected=380)
     if case == 'b' or case == 'all':
-        partB(input)
+        partB(input, expected=375)
 
 
