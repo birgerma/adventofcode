@@ -10,7 +10,7 @@ a:
 	python main.py a -f=input.txt
 
 b:
-	python main.py a -f=input.txt
+	python main.py b -f=input.txt
 
 test-a:
 	python main.py a -f=test.txt
