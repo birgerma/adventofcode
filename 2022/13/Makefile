@@ -4,7 +4,7 @@ RAW:=--raw=True
 TEST='all'
 
 all:
-	python main.py all -f=input.txt
+	python main.py all -f=input.txt ${RAW}
 
 a:
 	python main.py a -f=input.txt ${RAW}
