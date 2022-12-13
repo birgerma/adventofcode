@@ -13,39 +13,25 @@ DAY = os.getcwd().split('/')[-1]
 def parse(string, start=1):
     lst = []
     str_num = ""
-    #print("Parse string:", string, "start=", start)
     i=start
     while i<len(string):
-    #for i in range(start,len(string)):
         c = string[i]
-        #print(string)
-        #print("c:", c, "i:",i)
         i+=1
         if c==',':
-            #print("Next num:", str_num)
             if str_num!="":
                 lst.append(int(str_num))
             str_num=""
-            #print("New list:", lst)
         elif c=='[':
-            #print("New nested list")
             nested, new_i = parse(string, start=i)
-            #print("Current list:", lst)
-            #print("Nested list:", nested, "i=", new_i)
             lst.append(nested)
-            #print("New list:", lst)
             i=new_i
-            #quit()
         elif c==']':
-            #print("End of list")
             if str_num!="":
                 lst.append(int(str_num))
             break
-            #quit()
         else:
             str_num+=c
     
-    #print("Returning on i=", i)
     return lst, i
 
 def format_input(input):
@@ -59,13 +45,7 @@ def format_input(input):
         pair = pairs[i]
         left,_ = parse(pair[0])
         right,_ = parse(pair[1])
-        #print("Pair:", i+1)
-        #print("Original:", pair)
-        #print("Left:", left)
-        #print("Right:", right)
-        #print()
         formated.append((left,right))
-        #quit() 
     return formated
 
 def check_order(pair,do_print=False, tab_level=''):
@@ -96,40 +76,14 @@ def check_order(pair,do_print=False, tab_level=''):
                     return False
                 else:
                     pass
-                    #print("Is same, continue")
             elif isinstance(l, list) and isinstance(r,list):
                 res = check_order((l,r),do_print, tab_level+'\t')
                 if res==None:
                     continue
                 return res
-                if not res:
-                    return False
-                else: # Do some extra checking
-                    print("Extra check for", l, r)
-                    if len(l)==len(r):
-                        print()
-                        if l==[] and r==[]:
-                            print("Both empty, continue check")
-                            pass # Continue checking
-                        else:
-                            return True
-                            print("Continue")
-                            print(l, r)
-                    else:
-                        #print("Extra check also returned True")
-                        return True
             else:
                 print("Should not be here!")
-                Exception()
                 quit()
-                l = [l] if isinstance(l,int) else l
-                r = [r] if isinstance(r,int) else r
-                return check_order((l,r),do_print, tab_level+'\t')
-                if res:
-                    return True
-                    pass
-                else:
-                    return False
 
         else:
             if do_print:
@@ -158,9 +112,6 @@ def partA(input, expected=None):
             print()
         if res:
             answear+=(i+1)
-# 679 is too low    
-# 6118 is too high
-# 4751 is too low
     if answear:
         print("Solution for day {:} part A:".format(DAY),answear)
     if expected:
@@ -174,15 +125,8 @@ def sort_packets(packets):
         is_sorted = True
         sorted = []
         for i in range(0,len(packets)-1):
-            if check_order((packets[i], packets[i+1]), do_print=do_print):
-                pass
-            else:
+            if not check_order((packets[i], packets[i+1]), do_print=do_print):
                 is_sorted = False
-                #print("Wrong order:")
-                #print(i,":",packets[i])
-                #print(i+1,":",packets[i+1])
-                #print("n packets:",len(packets))
-                #print()
                 tmp = packets[i].copy()
                 packets[i] = packets[i+1]
                 packets[i+1] = tmp
@@ -191,9 +135,8 @@ def sort_packets(packets):
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
     data = format_input(input)
-    packets = []
-    packets.append([[2]])
-    packets.append([[6]])
+    divider_packets=[[[2]], [[6]]]
+    packets = divider_packets.copy()
     for pair in data:
         packets.append(pair[0])
         packets.append(pair[1])
@@ -201,7 +144,7 @@ def partB(input, expected=None):
     packets = sort_packets(packets)
     answear=1
     for i in range(len(packets)):
-        if packets[i]==[[2]] or packets[i]==[[6]]:
+        if packets[i] in divider_packets: 
             answear*=(i+1)
 
     if answear:
