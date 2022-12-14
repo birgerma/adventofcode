@@ -22,7 +22,6 @@ def format_nodes(str_nodes):
         formated.append((x,y))
     return formated
 def format_input(input):
-    print_list(input)
     formated = []
     for row in input:
         raw_nodes = row.split("->")
@@ -50,16 +49,11 @@ def get_points(p1, p2):
     y2=max(p1[1], p2[1])
     dx = norm(x2-x1)
     dy = norm(y2-y1)
-    print(dx,dy)
-    print("p1:", x1,y1)
-    print("p2:", x2,y2)
     x=x1
     y=y1
-    print(x<=x2, y<=y2)
     points = []
     while (x<=x2 and y<=y2):
         points.append((x,y))
-        print("Point:", x,y)
         x+=dx
         y+=dy
     return points
@@ -73,12 +67,9 @@ def add_rocks(points, cave_map):
 def create_cave(rock_coor):
     cave_map = defaultdict(lambda:0)
     for row in rock_coor:
-        print("Row:", row)
         for i in range(len(row)-1):
-            print("Pair:", row[i], row[i+1])
             points = get_points(row[i], row[i+1])
             cave_map = add_rocks(points, cave_map)
-    print(cave_map)
     return cave_map
 
 def get_max_y(coor_map):
@@ -101,12 +92,16 @@ def print_cave(cave_map, start):
             c = char_map[v]
             print(c,end='')
         print()
-def add_sand(start, cave_map):
+def add_sand(start, cave_map, floor=float('inf')):
     min_rock = get_max_y(cave_map)
-    print("Min y:", min_rock)
+    #print("Min y:", min_rock)
     x=start[0]
     y=start[1]
-    while y<min_rock:
+    while y<min_rock or y<floor:
+        # Start checking floor:
+        if y+1==floor:
+            #print("Found floor at", x,y)
+            break
         # check coordinates below:
         if cave_map[(x, y+1)]==0:
             # Ok do go down
@@ -120,23 +115,38 @@ def add_sand(start, cave_map):
             y=y+1
         else:
             # Found bottom, return
+            #print("Found bottom, returns")
+            #
             break
-    print("Final coordinates:", x,y)
+    #print("Floor:", floor)
+    #print(y<min_rock, y<floor)
+    #print("Final coordinates:", x,y)
     return (x,y)
 
 
 import time
-def pour_sand(start, cave_map):
+def pour_sand(start, cave_map, floor=None):
     min_rock = get_max_y(cave_map)
+    if floor is not None:
+        use_floor = True
+    else:
+        use_floor = False
+        floor=float('-inf')
     while True:
-        coor = add_sand(start, cave_map)
-        print(coor)
-        if coor[1]>=min_rock or coor[1]<=start[1]:
-            print("Sand not resting anymore")
+        coor = add_sand(start, cave_map, floor)
+        #print(coor)
+        #print("floor:", use_floor)
+        if use_floor:
+            if coor[1]<=start[1]:
+                print("Using floor, sand stopped itself")
+                cave_map[coor]=2
+                break
+        elif coor[1]>=min_rock or coor[1]<=start[1]:
+            print("No flor, Sand not resting anymore")
             break
         cave_map[coor]=2
         #print_cave(cave_map, start)
-        #time.sleep(2)
+        #time.sleep(1)
     return cave_map
 
 def partA(input, expected=None):
@@ -156,8 +166,11 @@ def partA(input, expected=None):
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
     data = format_input(input)
-
-    answear = None
+    cave_map = create_cave(data)
+    floor_level = get_max_y(cave_map)+2
+    cave_map = pour_sand((500,0), cave_map, floor=floor_level)
+    sand = [s for s in cave_map.values() if s==2]
+    answear = len(sand)
     if answear:
         print("Solution for day {:} part B:".format(DAY),answear)
     if expected:
@@ -186,6 +199,6 @@ if __name__=='__main__':
     if case == 'a' or case == 'all':
         partA(input, expected=795)
     if case == 'b' or case == 'all':
-        partB(input)
+        partB(input, expected=30214)
 
 
