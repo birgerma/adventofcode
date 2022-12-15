@@ -40,7 +40,7 @@ def manhattan(x1,y1, x2, y2):
     return dx+dy
 
 def compute_sensor_reach(sensors, sensor_reach, line=0):
-    print("Checking on line:", line)
+    #print("Checking on line:", line)
     for sensor in sensors:
         sensor_x = sensor[0]
         sensor_y = sensor[1]
@@ -208,7 +208,7 @@ def testPartA(input, expected=None):
     #sensor_reach = compute_sensor_reach(data, sensor_reach, line=line)
     sensor_reach = compute_sensor_reach(data, sensor_reach, line=line)
     #print(sensor_reach)
-    draw_map(sensor_reach)
+    #draw_map(sensor_reach)
     count = 0
     for (x,y) in sensor_reach.keys():
         if y==line and sensor_reach[(x,y)]==1:
@@ -234,12 +234,22 @@ def partA(input, expected=None):
     answear = count
     #print(sensor_reach)
     #answear = len([no_beacon for no_beacon in sensor_reach.values() if no_beacon==1])
-    print("Done", answear)       
+    #print("Done", answear)       
     if answear:
         print("Solution for day {:} part A:".format(DAY),answear)
     if expected:
         assert answear==expected
 
+def filter_sensors(sensors, y, miny=0, maxy=4000000):
+    filtered = []
+    for sensor in sensors:
+        r = sensor[4]
+        y_start = max(miny, sensor[1]-r)
+        y_end = min(maxy, sensor[1]+r)
+        if y>=y_start and y<=y_end:
+            filtered.append(sensor)
+
+    return filtered
 import json
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
@@ -253,22 +263,34 @@ def partB(input, expected=None):
     sensor_reach = defaultdict(lambda:0)
     sensor_reach = add_sensors_beacons(data, sensor_reach)
     coor = None
-    intervals = {}
-    for sensor in data:
-        print("Checking sensor:", sensor)
-        r = sensor[4]
-        y_start = max(min_y, sensor[1]-r)
-        y_end = min(max_y, sensor[1]+r)
+    for y in range(min_y, max_y+1):
+        #print("Checking sensor:", sensor)
+        intervals = []
+        #sensors = filter_sensors(data, y, miny=min_y, maxy=max_y)
+        #print(len(data), len(sensors))
+        for sensor in data:
+            r = sensor[4]
+            y_start = max(min_y, sensor[1]-r)
+            y_end = min(max_y, sensor[1]+r)
+            if y<y_start or y>y_end:
+                continue
 
-        for y in range(y_start, y_end+1):
-            if not y in intervals:
-                intervals[y]=[]
             dy = (abs(y-sensor[1]))
             dx = abs(abs(y-sensor[1])-r)
 
             x_start=max(min_x, sensor[0]-dx)
             x_end = min(max_x, sensor[0]+dx)
-            intervals[y].append([x_start,x_end])
+            intervals.append([x_start, x_end])
+        if len(intervals)>1:
+            i = merge_intervals(intervals)
+            if len(i)>1:
+                y_ans = y
+                x_ans = i[0][1]+1
+
+    answear=x_ans*4000000+y_ans
+    print("Answear:", answear)
+    assert answear == expected
+    quit()
 
     for y in intervals.keys():
         i = merge_intervals(intervals[y])
@@ -375,9 +397,9 @@ if __name__=='__main__':
     args = parser.parse_args()
     input = get_input_data(args.filename, args.raw)
     case = args.case.lower()
-    if case == 'test-a' or case == 'all':
+    if case == 'test-a':
         testPartA(input)
-    if case == 'test-b' or case == 'all':
+    if case == 'test-b':
         testPartB(input)
     if case == 'a' or case == 'all':
         partA(input, expected=5335787)
