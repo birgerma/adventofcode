@@ -222,19 +222,27 @@ def testPartA(input, expected=None):
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
     data = format_input(input)
-    sensor_reach = defaultdict(lambda:0)
-    sensor_reach = add_sensors_beacons(data, sensor_reach)
-    line = 2000000
-    sensor_reach = compute_sensor_reach(data, sensor_reach, line=line)
+    #sensor_reach = defaultdict(lambda:0)
+    #sensor_reach = add_sensors_beacons(data, sensor_reach)
+    y = 2000000
+    intervals = []
+    for sensor in data:
+        r = sensor[4]
+        dx = r-abs(y-sensor[1])
+
+        if dx<0:
+            continue
+        x_start=sensor[0]-dx
+        x_end = sensor[0]+dx
+        intervals.append([x_start, x_end])
+    merged = merge_intervals(intervals)
+
     count = 0
-    for (x,y) in sensor_reach.keys():
-        if y==line and sensor_reach[(x,y)]==1:
-            count+=1
+    for i in merged:
+        dx = i[1]-i[0]
+        count+=dx
 
     answear = count
-    #print(sensor_reach)
-    #answear = len([no_beacon for no_beacon in sensor_reach.values() if no_beacon==1])
-    #print("Done", answear)       
     if answear:
         print("Solution for day {:} part A:".format(DAY),answear)
     if expected:
@@ -264,10 +272,7 @@ def partB(input, expected=None):
     sensor_reach = add_sensors_beacons(data, sensor_reach)
     coor = None
     for y in range(min_y, max_y+1):
-        #print("Checking sensor:", sensor)
         intervals = []
-        #sensors = filter_sensors(data, y, miny=min_y, maxy=max_y)
-        #print(len(data), len(sensors))
         for sensor in data:
             r = sensor[4]
             y_start = max(min_y, sensor[1]-r)
@@ -333,25 +338,29 @@ def partB(input, expected=None):
 
 def merge_intervals(intervals):
     intervals=sorted(intervals)
-    while True:
-        i1 = intervals[0]
-        i2 = intervals[1]
+    index=0
+    while index<len(intervals)-1:
+        i1 = intervals[index]
+        i2 = intervals[index+1]
         if i1[1]<i2[0]:# Found non reached x
             #print("Done:", i1[1], i1[0])
-            return [i1, i2]
+            #return [i1, i2]
+            print(intervals)
+            index+=1
         elif i1[1]>=i2[1]: # i1 includes i2, remove i2
-            del intervals[1]
+            del intervals[index+1]
         elif i1[1]>=i2[0]: # Overlapping, merge
             i1[1]=i2[1]
-            intervals[0]=i1
-            del intervals[1]
+            intervals[index]=i1
+            del intervals[index+1]
         else:
             print("Error")
             quit()
         #print(i1, i2)
         if len(intervals)==1:
             break
-    #print(intervals)
+    if len(intervals)>1:
+        print(intervals)
     return intervals
 
 def b_from_file():
