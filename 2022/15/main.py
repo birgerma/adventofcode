@@ -1,3 +1,5 @@
+import json
+import time
 # importing sys
 import sys
 import os
@@ -38,36 +40,6 @@ def manhattan(x1,y1, x2, y2):
     dx = abs(x1-x2)
     dy = abs(y1-y2)
     return dx+dy
-
-def compute_sensor_reach(sensors, sensor_reach, line=0):
-    #print("Checking on line:", line)
-    for sensor in sensors:
-        sensor_x = sensor[0]
-        sensor_y = sensor[1]
-        beacon_x = sensor[2]
-        beacon_y = sensor[3]
-        #sensor_reach[(beacon_x, beacon_y)]=-1
-        #sensor_reach[(sensor_x, sensor_y)]=-2
-        #if sensor_x!=8 and sensor_y!=7: continue
-        #r = manhattan(sensor_x, sensor_y, beacon_x, beacon_y)
-        r = sensor[4]
-        #print(sensor, r)
-        dy = abs(sensor_y-line)
-        x1 = sensor_x-r+dy
-        x2 = sensor_x+r-dy
-        #print(x1,x2)
-        #max_x = max(x1,x2)
-        #min_x = min(x1,x2)
-        min_x = sensor_x-r
-        max_x = sensor_x+r
-        #print(min_x, max_x)
-        for x in range(min_x, max_x+1):
-            if manhattan(sensor_x,sensor_y,x,line)>r:
-                continue
-            if ((x,line) not in sensor_reach.keys()):
-                #print("Mark", x, "as free")
-                sensor_reach[(x,line)]=1
-    return sensor_reach
 
 def get_min_max(map):
     x_max=float('-inf')
@@ -117,24 +89,12 @@ def draw_map(sensor_map):
             print(c, end='')
         print()
 
-def add_sensors_beacons(data, sensor_map):
-    for sensor in data:
-        sensor_x = sensor[0]
-        sensor_y = sensor[1]
-        beacon_x = sensor[2]
-        beacon_y = sensor[3]
-        sensor_map[(beacon_x, beacon_y)]=-1
-        sensor_map[(sensor_x, sensor_y)]=-2
-
-    return sensor_map
-
 def get_max_r(data):
     r=float('-inf')
     for d in data:
         if d[4]>r:
             r=d[4]
     return r
-import time
 def testPartB(input, expected=None):
     print("Testing for day {:} part A".format(DAY))
     data = format_input(input)
@@ -179,9 +139,6 @@ def testPartB(input, expected=None):
     print("Test b:", answear)
     assert answear==56000011
 
-# 6160793 too high
-# 5995319 too high
-# 5335788 too high
 def testPartA(input, expected=None):
     print("Testing for day {:} part A".format(DAY))
     data = format_input(input)
@@ -222,8 +179,6 @@ def testPartA(input, expected=None):
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
     data = format_input(input)
-    #sensor_reach = defaultdict(lambda:0)
-    #sensor_reach = add_sensors_beacons(data, sensor_reach)
     y = 2000000
     intervals = []
     for sensor in data:
@@ -248,17 +203,6 @@ def partA(input, expected=None):
     if expected:
         assert answear==expected
 
-def filter_sensors(sensors, y, miny=0, maxy=4000000):
-    filtered = []
-    for sensor in sensors:
-        r = sensor[4]
-        y_start = max(miny, sensor[1]-r)
-        y_end = min(maxy, sensor[1]+r)
-        if y>=y_start and y<=y_end:
-            filtered.append(sensor)
-
-    return filtered
-import json
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
     data = format_input(input)
@@ -268,73 +212,31 @@ def partB(input, expected=None):
     max_x = 4000000
     max_y = 4000000
 
-    sensor_reach = defaultdict(lambda:0)
-    sensor_reach = add_sensors_beacons(data, sensor_reach)
-    coor = None
+    for d in data:
+        y_start = d[1]-d[4]
+        y_end = d[1]+d[4]
+        d.append(y_start)
+        d.append(y_end)
+
+    start_time = time.time()
     for y in range(min_y, max_y+1):
         intervals = []
         for sensor in data:
-            r = sensor[4]
-            y_start = max(min_y, sensor[1]-r)
-            y_end = min(max_y, sensor[1]+r)
-            if y<y_start or y>y_end:
+            if y<sensor[5] or y>sensor[6]:
                 continue
 
-            dy = (abs(y-sensor[1]))
-            dx = abs(abs(y-sensor[1])-r)
-
-            x_start=max(min_x, sensor[0]-dx)
-            x_end = min(max_x, sensor[0]+dx)
-            intervals.append([x_start, x_end])
+            dx = sensor[4]-abs(y-sensor[1])
+            intervals.append([sensor[0]-dx, sensor[0]+dx])
         if len(intervals)>1:
             i = merge_intervals(intervals)
             if len(i)>1:
                 y_ans = y
                 x_ans = i[0][1]+1
 
+    print("--- %s seconds ---" % (time.time() - start_time))
     answear=x_ans*4000000+y_ans
     print("Answear:", answear)
     assert answear == expected
-    quit()
-
-    for y in intervals.keys():
-        i = merge_intervals(intervals[y])
-        if len(i)>1:
-            print(y, i)
-            y_ans = y
-            x_ans = i[0][1]+1
-            print()
-            break
-    answear=x_ans*4000000+y
-    print("Answear:", answear)
-    assert answear == expected
-    quit()
-
-    print("All checked, find answear")
-    y=3349056
-    x=3418491+1
-    answear = x*4000000+y
-    # Serializing json
-    json_object = json.dumps(intervals, indent=4)
-
-    # Writing to sample.json
-    with open("sample.json", "w") as outfile:
-            outfile.write(json_object)
-    quit()
-    print("Number of rows:", len(intervals.keys()))
-    for y in intervals.keys():
-        print(y)
-        print(intervals[y])
-    quit()
-    for x in range(max_x+1):
-        for y in range(max_y+1):
-            if (x,y) not in sensor_reach:
-                coor = (x,y)
-    answear = coor[0]*4000000+coor[1]
-    if answear:
-        print("Solution for day {:} part B:".format(DAY),answear)
-    if expected:
-        assert answear==expected
 
 def merge_intervals(intervals):
     intervals=sorted(intervals)
@@ -343,9 +245,6 @@ def merge_intervals(intervals):
         i1 = intervals[index]
         i2 = intervals[index+1]
         if i1[1]<i2[0]:# Found non reached x
-            #print("Done:", i1[1], i1[0])
-            #return [i1, i2]
-            print(intervals)
             index+=1
         elif i1[1]>=i2[1]: # i1 includes i2, remove i2
             del intervals[index+1]
@@ -356,36 +255,10 @@ def merge_intervals(intervals):
         else:
             print("Error")
             quit()
-        #print(i1, i2)
         if len(intervals)==1:
             break
-    if len(intervals)>1:
-        print(intervals)
     return intervals
 
-def b_from_file():
-    y=3349056
-    x=3418491+1
-    print(x*4000000+y)
-    quit()
-    # Opening JSON file
-    with open('sample.json', 'r') as openfile:
-        # Reading from json file
-        json_object = json.load(openfile)
-
-    intervals = json_object
-    print("N keys:", len(intervals.keys()))
-
-    for y in intervals.keys():
-        #print(intervals[y])
-        #print(y)
-        i = merge_intervals(intervals[y])
-        print(i)
-        if len(i)>1:
-            print(y, i)
-            print()
-            break
-        
 def get_input_data(fname, raw):
     try:
         if raw:
@@ -413,8 +286,6 @@ if __name__=='__main__':
     if case == 'a' or case == 'all':
         partA(input, expected=5335787)
     if case == 'b' or case == 'all':
-        #b_from_file()
-        #quit()
         partB(input, expected=13673971349056)
 
 
