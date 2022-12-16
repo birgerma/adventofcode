@@ -70,18 +70,23 @@ MEM = {}
 n_computations = 0
 import math
 max_comp = math.factorial(10)
-def find_max_flow(node, t, cave_map):
+def find_max_flow(node, t, cave_map, n_visited, n_to_visit):
     global n_computations, MEM
     n_computations+=1
     sleep = 5
     t_max = 30
-    if len(t)>=t_max or is_all_opened(t, cave_map) or has_cycle(t):
+    #if len(t)>=t_max or is_all_opened(t, cave_map) or has_cycle(t):
+    if len(t)>=t_max or n_visited==n_to_visit or has_cycle(t):
         t_str = "".join(t)
         while len(t)<t_max:
             t.append("-")
         score = sum(compute_flow(t, cave_map))
         MEM[t_str]=score
         return score
+
+    key = "".join(t)
+    if key in MEM:
+        return MEM[key]
 
     flow = cave_map[node][0]
     nodes = cave_map[node][1]
@@ -96,39 +101,54 @@ def find_max_flow(node, t, cave_map):
         dprint("")
     if DEBUG:
         time.sleep(sleep)
-    if is_all_opened(t, cave_map) or has_cycle(t):
-        #print("All nodes opened, compute final score")
-        t_str = "".join(t)
-        while len(t)<t_max:
-            t.append("-")
-        MEM[t_str]=t
-        return t
+    #if is_all_opened(t, cave_map) or has_cycle(t):
+    #if is_all_opened(t, cave_map):
+    #    print("ERROR")
+    #    quit()
+    #    #print("All nodes opened, compute final score")
+    #    #t_str = "".join(t)
+    #    diff = t_max-len(t)
+    #    t+=["-"]*diff
+    #    #while len(t)<t_max:
+    #    #    t.append("-")
+    #    MEM[key]=t
+    #    return t
 
-    if "".join(t) in MEM.keys():
-        return MEM["".join(t)]
+    #if "".join(t) in MEM.keys():
+    #    return MEM["".join(t)]
 
     max_score = 0
     if flow>0 and node not in t:
+        # Open node flow
         t_tmp = t+[node]
         next_node = node
-        max_score = find_max_flow(next_node, t_tmp, cave_map)
+        max_score = find_max_flow(next_node, t_tmp, cave_map, n_visited+1, n_to_visit)
 
     for n in nodes:
         move_str = "move->"+n
-        t_tmp = t + [move_str]
-        score = find_max_flow(n, t_tmp, cave_map)
+        #t_tmp = t + [move_str]
+        score = find_max_flow(n, t+[move_str], cave_map, n_visited, n_to_visit)
         if score>max_score:
             max_score = score
             #print("Best score:", max_score)
-        MEM["".join(t)]=max_score
+        MEM[key]=max_score
     return max_score
 
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
     data = format_input(input)
     init = 'AA'
-    max_flow = find_max_flow(init, [], data)
+    to_visit = []
+    for node in data:
+        print(data[node])
+        if data[node][0]>0:
+            to_visit.append(node)
+    print(to_visit)
+    start_time = time.time()
+    max_flow = find_max_flow(init, [], data, 0, len(to_visit))
     print(max_flow)
+    print("commputation time:", time.time()-start_time)
+    assert max_flow==1651
     quit()
     flow = compute_flow(moves, data)
     open_valves = []
