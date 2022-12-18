@@ -27,14 +27,67 @@ def get_neighbours(p):
         n.append((p[0], p[1], p[2]+dp))
     return n
 
-def count_free_sides(grid):
+def count_free_sides(grid, air=None):
     for p in grid.keys():
         neighbours = get_neighbours(p)
         for n in neighbours:
             if n in grid:
                 grid[p]=grid[p]-1
-
+            elif air and n in air:
+                grid[p]=grid[p]-1
     return grid
+
+def get_max(grid):
+    dim = 3
+    max_values = [float('-inf')]*dim
+    for p in grid:
+        for i in range(dim):
+            if max_values[i]<p[i]:
+                max_values[i]=p[i]
+    return max_values
+
+def get_min(grid):
+    dim = 3
+    min_values = [float('inf')]*dim
+    for p in grid:
+        for i in range(dim):
+            if min_values[i]>p[i]:
+                min_values[i]=p[i]
+    return min_values
+
+def is_outside(p, min_v, max_v):
+    for i in range(len(p)):
+        if min_v[i]>p[i] or max_v[i]<p[i]:
+            return True
+    return False
+
+def rec_find_air_pockets(p,grid, min_vals, max_vals, path):
+    if p in grid: # Is lava
+        return path
+    elif is_outside(p, min_vals, max_vals):
+        return None
+    else:
+        for n in get_neighbours(p):
+            new_path = rec_find_air_pockets(n, grid, min_vals, max_vals, path)
+            if new_path==None: # found path to outside, no air pocket
+                return None
+            else:
+                path+=new_path
+        path.append(p)
+        return path
+
+
+def find_air_pockets(grid):
+    max_values = get_max(grid)
+    min_values = get_min(grid)
+    air = {}
+    for p in grid:
+        for n in get_neighbours(p):
+            path = rec_find_air_pockets(n, grid, min_values, max_values, [])
+            if path is not None:
+                for p in path:
+                    air[p]=1
+    return air
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
     data = format_input(input)
@@ -53,7 +106,16 @@ def partA(input, expected=None):
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
     data = format_input(input)
+    grid = {}
+    for p in data:
+        grid[p]=6
+    
+    air = find_air_pockets(grid)
+    print(air)
+    grid = count_free_sides(grid, air=air)
 
+    count = sum(grid.values())
+    print("Count:", count)
     answear = None
     if answear:
         print("Solution for day {:} part B:".format(DAY),answear)
