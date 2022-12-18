@@ -70,18 +70,32 @@ MEM = {}
 n_computations = 0
 import math
 max_comp = math.factorial(10)
-def find_max_flow(node, t, cave_map, n_visited, n_to_visit):
-    global n_computations, MEM
-    n_computations+=1
+
+def is_cycle(nodes):
+    if len(nodes)>0:
+        return nodes[-1] in nodes[:-1]
+    return False
+
+def find_max_flow(node, t, cave_map, n_visited, n_to_visit, prev_nodes):
+    global MEM
+    #n_computations+=1
+
+    #found_cycle=False
+    #if len(prev_nodes)>1:
+    #    found_cytle = prev_nodes[-1] in prev_nodes[:-1]
     sleep = 5
     t_max = 30
     #if len(t)>=t_max or is_all_opened(t, cave_map) or has_cycle(t):
-    if len(t)>=t_max or n_visited==n_to_visit or has_cycle(t):
-        t_str = "".join(t)
-        while len(t)<t_max:
-            t.append("-")
+    #if len(t)>=t_max or n_visited==n_to_visit or has_cycle(t):
+    #if len(t)>=t_max or n_visited==n_to_visit or found_cycle:
+    if n_visited==n_to_visit or len(t)>=t_max or is_cycle(prev_nodes):
+        #t_str = "".join(t)
+        #diff = t_max-len(t)
+        t+=["-"]*(t_max-len(t))
+        #while len(t)<t_max:
+        #    t.append("-")
         score = sum(compute_flow(t, cave_map))
-        MEM[t_str]=score
+        #MEM[key]=score
         return score
 
     key = "".join(t)
@@ -122,12 +136,12 @@ def find_max_flow(node, t, cave_map, n_visited, n_to_visit):
         # Open node flow
         t_tmp = t+[node]
         next_node = node
-        max_score = find_max_flow(next_node, t_tmp, cave_map, n_visited+1, n_to_visit)
+        max_score = find_max_flow(next_node, t_tmp, cave_map, n_visited+1, n_to_visit, [])
 
     for n in nodes:
         move_str = "move->"+n
         #t_tmp = t + [move_str]
-        score = find_max_flow(n, t+[move_str], cave_map, n_visited, n_to_visit)
+        score = find_max_flow(n, t+[move_str], cave_map, n_visited, n_to_visit, prev_nodes+[n])
         if score>max_score:
             max_score = score
             #print("Best score:", max_score)
@@ -140,12 +154,10 @@ def partA(input, expected=None):
     init = 'AA'
     to_visit = []
     for node in data:
-        print(data[node])
         if data[node][0]>0:
             to_visit.append(node)
-    print(to_visit)
     start_time = time.time()
-    max_flow = find_max_flow(init, [], data, 0, len(to_visit))
+    max_flow = find_max_flow(init, [], data, 0, len(to_visit), [])
     print(max_flow)
     print("commputation time:", time.time()-start_time)
     assert max_flow==1651
