@@ -71,6 +71,8 @@ def print_ll(node):
         if node is not None:
             print('-> ', end='')
     print()
+
+from llist import dllist, dllistnode
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
     data = format_input(input)
@@ -80,91 +82,68 @@ def partA(input, expected=None):
     og_index=0
     zero_node = None
     
+    lst = dllist()
     for d in data:
-        node = Node(d)
+        node = dllistnode(d)
         if d==0:
             zero_node = node
         original[og_index]=node
         og_index+=1
-        if prev:
-            prev.insert_after(node)
-        else:
-            head=node
-        prev = node
-    tail = node
+        lst.insertnode(node)
+
     n_numbers = len(original.keys())
 
-    if len(original.keys())<10:
-        print("original list:")
-        print_ll(head)
-    print()
+    wraparound =False
+    if lst.size<10: print('Init:', lst)
     for og_index in original:
         node = original[og_index]
-        sign = 1 if node.data>=0 else -1
-        steps = abs(node.data)%n_numbers
-        steps*=sign
-        print("Abs node:", abs(node.data))
-        print("Step conversion:", node.data, steps)
-        print("Move node", node, steps,'steps')
+        steps = node.value
+        n_steps = abs(steps)-1
+        #sign = -1 if steps<0 else 1
+        #steps = steps%lst.size
+        #steps = steps*sign
+        
+        #n = node
         if steps>0:
-            wrap = head
-        else:
-            wrap = tail
-
-        if steps>0:
-            n = node.next if node.next else wrap
-            tmp = node.prev
-            node.disconnect()
-            if n.prev is None:
-                head = n
-            if n.next is None:
-                tail = n
-            while steps>1:
-                if n.next is not None:
-                    n = n.next
-                else: # Wrap around
-                    n=wrap
-                steps-=1
-           # if n==tail:
-           #     head.insert_before(node)
-           #     head=node
-           # else:
-           #     n.insert_after(node)
-            n.insert_after(node)
+            n = node.next if node.next else lst.first
+            lst.remove(node)
+            #while steps>0:
+            for step in range(steps-1):
+              if n.next:
+                n=n.next
+                #steps-=1
+              else:
+                n = lst.first
+            #v = lst.remove(node)
+            lst.insertnodeafter(node,n)
+            #print("Insert", node.value,"after", n.value)
         elif steps<0:
-            n = node.prev if node.prev else wrap
-            node.disconnect()
-            if n.prev is None:
-                head = n
-            if n.next is None:
-                tail = n
-            while steps<-1:
-                if n.prev is not None:
-                    n = n.prev
-                else:
-                    n = wrap
-                steps+=1
-          #  if n==head:
-          #      tail.insert_after(node)
-          #      tail=node
-          #  else:
-          #      n.insert_before(node)
-            n.insert_before(node)
+            n = node.prev if node.prev else lst.last
+            lst.remove(node)
+            #while steps<1:
+            for step in range(abs(steps)-1):
+              if n.prev:
+                n = n.prev
+                #steps+=1
+              else: 
+                n=lst.last
+                wraparound=True
+                #steps+=1
+            print("Node:", node)
+            print("n=", n)
+            #lst.remove(node)
+            lst.insertnodebefore(node, n)
         else:
             pass # 0 do not move
-        if node.prev is None:
-            head = node
-        if node.next is None:
-            tail = node
-        if len(original.keys())<10:
-            print_ll(head)
-            print()
-    
-    if len(original.keys())<10:
-        print_ll(head)
-    groove_numbers = [s%n_numbers for s in [1000, 2000, 3000]]
+        prev = node.prev if node.prev else lst.last
+        nxt = node.next if node.next else lst.first
+        print(node.value,"moves between",prev.value,"and", nxt.value)
+        if lst.size<10: print('List:', lst,'\n')
+        #quit()
+
+    groove_numbers = [1000, 2000, 3000]
     print("Orig groove:", groove_numbers)
-    print("1000%1=",1000%1)
+    #groove_numbers = [s%n_numbers for s in groove_numeers
     groove_numbers.sort()
     print("Len:", n_numbers)
     print("Groove:", groove_numbers)
@@ -174,11 +153,15 @@ def partA(input, expected=None):
     answear = 0
     for i in groove_numbers:
         while j<i:
-            node = node.next if node.next else head
+            node = node.next if node.next else lst.first
             j+=1
-        print("Final node:", node)
-        answear+=node.data
-
+        print("Final node:", node, node.value)
+        answear+=node.value
+        print(answear)
+    print("Answear:",answear)
+# -928?
+# 928 wrong
+# 4073 is wrong
 # 9476 too high
 # 12971 is too high
 # 13611 probably too high
@@ -219,7 +202,7 @@ if __name__=='__main__':
     input = get_input_data(args.filename, args.raw)
     case = args.case.lower()
     if case == 'a' or case == 'all':
-        partA(input)
+        partA(input, expected=4066)
     if case == 'b' or case == 'all':
         partB(input)
 
