@@ -73,6 +73,40 @@ def print_ll(node):
     print()
 
 from llist import dllist, dllistnode
+
+def mix_numbers(lst, original):
+    for og_index in original:
+        node = original[og_index]
+        steps = node.value
+        n_steps = abs(steps)-1
+        n_steps = n_steps%(lst.size-1)
+        
+        if steps>0:
+            n = node.next if node.next else lst.first
+            lst.remove(node)
+            for step in range(n_steps):
+              if n.next:
+                n=n.next
+              else:
+                n = lst.first
+            lst.insertnodeafter(node,n)
+        elif steps<0:
+            n = node.prev if node.prev else lst.last
+            lst.remove(node)
+            for step in range(n_steps):
+              if n.prev:
+                n = n.prev
+              else: 
+                n=lst.last
+            lst.insertnodebefore(node, n)
+        else:
+            pass # 0 do not move
+        prev = node.prev if node.prev else lst.last
+        nxt = node.next if node.next else lst.first
+        #print(node.value,"moves between",prev.value,"and", nxt.value)
+        if lst.size<10: print('List:', lst,'\n')
+    return lst
+
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
     data = format_input(input)
@@ -93,53 +127,10 @@ def partA(input, expected=None):
 
     n_numbers = len(original.keys())
 
-    wraparound =False
     if lst.size<10: print('Init:', lst)
-    for og_index in original:
-        node = original[og_index]
-        steps = node.value
-        n_steps = abs(steps)-1
-        #sign = -1 if steps<0 else 1
-        #steps = steps%lst.size
-        #steps = steps*sign
-        
-        #n = node
-        if steps>0:
-            n = node.next if node.next else lst.first
-            lst.remove(node)
-            #while steps>0:
-            for step in range(steps-1):
-              if n.next:
-                n=n.next
-                #steps-=1
-              else:
-                n = lst.first
-            #v = lst.remove(node)
-            lst.insertnodeafter(node,n)
-            #print("Insert", node.value,"after", n.value)
-        elif steps<0:
-            n = node.prev if node.prev else lst.last
-            lst.remove(node)
-            #while steps<1:
-            for step in range(abs(steps)-1):
-              if n.prev:
-                n = n.prev
-                #steps+=1
-              else: 
-                n=lst.last
-                wraparound=True
-                #steps+=1
-            print("Node:", node)
-            print("n=", n)
-            #lst.remove(node)
-            lst.insertnodebefore(node, n)
-        else:
-            pass # 0 do not move
-        prev = node.prev if node.prev else lst.last
-        nxt = node.next if node.next else lst.first
-        print(node.value,"moves between",prev.value,"and", nxt.value)
-        if lst.size<10: print('List:', lst,'\n')
-        #quit()
+    
+    lst = mix_numbers(lst, original)
+
 
     groove_numbers = [1000, 2000, 3000]
     print("Orig groove:", groove_numbers)
@@ -159,23 +150,44 @@ def partA(input, expected=None):
         answear+=node.value
         print(answear)
     print("Answear:",answear)
-# -928?
-# 928 wrong
-# 4073 is wrong
-# 9476 too high
-# 12971 is too high
-# 13611 probably too high
-# 18506 probably too high
     if answear:
         print("Solution for day {:} part A:".format(DAY),answear)
     if expected:
         assert answear==expected
 
+def compute_score(lst, zero_node):
+    groove_numbers = [1000, 2000, 3000]
+    groove_numbers.sort()
+    j=0
+    node = zero_node
+    answear = 0
+    for i in groove_numbers:
+        while j<i:
+            node = node.next if node.next else lst.first
+            j+=1
+        print("Final node:", node, node.value)
+        answear+=node.value
+    return answear
 def partB(input, expected=None):
     print("Solve for day {:} part B".format(DAY))
     data = format_input(input)
+    original = {}
+    og_index=0
+    zero_node = None
+    mul = 811589153 
+    lst = dllist()
+    for d in data:
+        node = dllistnode(d*mul)
+        if d==0:
+            zero_node = node
+        original[og_index]=node
+        og_index+=1
+        lst.insertnode(node)
 
-    answear = None
+    for i in range(10):
+      lst = mix_numbers(lst, original)
+    print("Done")
+    answear = compute_score(lst, zero_node)
     if answear:
         print("Solution for day {:} part B:".format(DAY),answear)
     if expected:
@@ -204,6 +216,6 @@ if __name__=='__main__':
     if case == 'a' or case == 'all':
         partA(input, expected=4066)
     if case == 'b' or case == 'all':
-        partB(input)
+        partB(input, expected=6704537992933)
 
 
