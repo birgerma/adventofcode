@@ -16,6 +16,7 @@ def dprint(*args):
     if DEBUG:
         print(args)
 
+import igraph as graph
 def format_input(input):
     data = {}
     for line in input:
@@ -24,205 +25,162 @@ def format_input(input):
         flow = int("".join(list(line[4].split("=")[1])[:-1]))
         nodes = "".join(line[9:]).split(",")
         data[name]=[flow, nodes]
-    return data
 
-def compute_flow(t, cave_map):
-    if len(t)>30:
-        print("Flow error")
-        quit()
-    score = [0]
-    s=0
-    for move in t:
-        if move in cave_map.keys():
-            s+=cave_map[move][0]
-            #s = score[-1]
-        score.append(s)
-    return score[0:30]
+    # Create graph of nodes:
+    vmap = {}
+    index = 0
+    for node in data:
+        vmap[index]=node
+        vmap[node]=index
+        index+=1
+    
+    g = graph.Graph(directed=True)
+    g.add_vertices(len(data))
+    for node in data:
+        connections = data[node][1]
+        i1 = vmap[node]
+        for con in connections:
+            i2 = vmap[con]
+            g.add_edges([(i1,i2)])
 
-def has_cycle(path):
-    #print("Original path:", path)
-    rev = path[::-1]
-    #print("Reverse path:", rev)
 
-    visited = []
-    for p in rev:
-        if not p.startswith("move->"):
-            # No cycle if opening something
-            return False
-        elif p in visited:
-            # Found cycle
-            #print("Found cycle")
-            return True
-        visited.append(p)
-    return False
-    if len(path)>8:
-        quit()
-    return False
-import time
-def is_all_opened(t, cave_map):
-    for node in cave_map.keys():
-        if cave_map[node][0]>0:
-            if node not in t:
-                return False
-    return True
+    non_zero_nodes = [node for node in data.keys() if data[node][0]>0]
+    # Compute shortest path
+    path = {}
+    for n1 in non_zero_nodes:
+        for n2 in non_zero_nodes:
+            if n1!=n2:
+                p=g.get_shortest_paths(vmap[n1],to=vmap[n2],mode=graph.OUT,output='vpath')
+                path[(n1,n2)]=p[0]
+        # Compute shortest path from AA to all nodes
+        p=g.get_shortest_paths(vmap['AA'],to=vmap[n1],mode=graph.OUT,output='vpath')
+        path[('AA', n1)] = p[0]
+
+
+    return data, path, vmap
+
 
 MEM = {}
 n_computations = 0
 import math
 max_comp = math.factorial(10)
+import time
+from collections import deque
 
-def is_cycle(nodes):
-    if len(nodes)>0:
-        return nodes[-1] in nodes[:-1]
-    return False
+def compute_total_flow(t, data):
+    flow = [0]*30
+    s = 0
+    #print("Compute score")
+    for i in range(len(flow)):
+        if i<len(t):
+            move = t[i]
+            #print("Move:", move)
+            if move in data:
+                #print("Is flow:", data[move][0])
+                s+=data[move][0]
+        flow[i]=s
+   #print(flow)
+    return sum(flow)
+def find_best_path(data, path, vmap):
 
-def find_max_flow(node, t, cave_map, n_visited, n_to_visit, prev_nodes):
-    global MEM
-    #n_computations+=1
+    max_t=30
+    Q = deque()
+    closed_nodes = [node for node in data if data[node][0]>0]
+    state = ('AA',['AA'], closed_nodes)
+    Q.append(state)
 
-    #found_cycle=False
-    #if len(prev_nodes)>1:
-    #    found_cytle = prev_nodes[-1] in prev_nodes[:-1]
-    sleep = 5
-    t_max = 30
-    #if len(t)>=t_max or is_all_opened(t, cave_map) or has_cycle(t):
-    #if len(t)>=t_max or n_visited==n_to_visit or has_cycle(t):
-    #if len(t)>=t_max or n_visited==n_to_visit or found_cycle:
-    if n_visited==n_to_visit or len(t)>=t_max or is_cycle(prev_nodes):
-        #t_str = "".join(t)
-        #diff = t_max-len(t)
-        t+=["-"]*(t_max-len(t))
-        #while len(t)<t_max:
-        #    t.append("-")
-        score = sum(compute_flow(t, cave_map))
-        #MEM[key]=score
-        return score
+    SEEN = set()
+    best_score = 0
+    best_path = []
 
-    key = "".join(t)
-    if key in MEM:
-        return MEM[key]
+    while Q:
+        #print(len(Q))
+        node, t, closed = Q.pop()
+        if len(t)>30:
+            t=t[:30]
 
-    flow = cave_map[node][0]
-    nodes = cave_map[node][1]
-    DEBUG=False
-    if DEBUG:
-        dprint("Current:", node)
-        dprint("Flow:", flow)
-        dprint("Nodes:", nodes)
-        dprint("Time:", t)
-        dprint("Flow>0", flow>0)
-        dprint("node is open:", node in t)
-        dprint("")
-    if DEBUG:
-        time.sleep(sleep)
-    #if is_all_opened(t, cave_map) or has_cycle(t):
-    #if is_all_opened(t, cave_map):
-    #    print("ERROR")
-    #    quit()
-    #    #print("All nodes opened, compute final score")
-    #    #t_str = "".join(t)
-    #    diff = t_max-len(t)
-    #    t+=["-"]*diff
-    #    #while len(t)<t_max:
-    #    #    t.append("-")
-    #    MEM[key]=t
-    #    return t
+        if str(t) in SEEN:
+            #print("Already seen")
+            continue
+        SEEN.add(str(t))
+        if len(t)>=30 or len(closed)==0:
+            #print("Final t:", t)
+            score = compute_total_flow(t, data)
+            #print("Final score:", score)
+            if score>best_score:
+                print("New best score:", score)
+                best_score = score
+                best_path = t
+            #else:
+            #    print("Compare:")
+            #    for i in range(30):
+            #        print(t[i], best_path[i], t[i]==best_path[i])
+            #    print(str(t), str(best_path))
+            #    print(",".join(t)==",".join(best_path))
+            #    quit()
+        #print("State:", node, t, closed)
+        flow = data[node][0]
+        #print("Potential flow:", flow)
 
-    #if "".join(t) in MEM.keys():
-    #    return MEM["".join(t)]
 
-    max_score = 0
-    if flow>0 and node not in t:
-        # Open node flow
-        t_tmp = t+[node]
-        next_node = node
-        max_score = find_max_flow(next_node, t_tmp, cave_map, n_visited+1, n_to_visit, [])
+        if flow>0 and node in closed:
+            #print("Can open, should be implemented")
+            #print("Closed:", closed)
+            new_closed = closed.copy()
+            new_closed.remove(node)
+            #print("New closed",new_closed)
+            new_state = (node, t+[node], new_closed)
+            t=t+[node]
+            closed = new_closed
+            #print("New state:", new_state)
+            #Q.append(new_state)
+            if len(closed)==0:
+                Q.append(new_state)
+        
+        # Try to move to nodes
+        for n in closed:
+            if n!=node:
+                p = path[(node,n)]
+                moves = []
+                for i in range(len(p)-1):
+                    moves.append(vmap[p[i]]+'->'+vmap[p[i+1]])
 
-    for n in nodes:
-        move_str = "move->"+n
-        #t_tmp = t + [move_str]
-        score = find_max_flow(n, t+[move_str], cave_map, n_visited, n_to_visit, prev_nodes+[n])
-        if score>max_score:
-            max_score = score
-            #print("Best score:", max_score)
-        MEM[key]=max_score
-    return max_score
+                next_node = n
+                #print("Closed nodes:", closed)
+                new_state = (n, t+moves, closed)
+                Q.append(new_state)
+    print("Done with simulation")
+    compute_total_flow(best_path, data)
+    print("Best t:", best_path)
+    print("Best score:", best_score)
 
 def partA(input, expected=None):
     print("Solve for day {:} part A".format(DAY))
-    data = format_input(input)
+    data, path, vmap = format_input(input)
     init = 'AA'
-    to_visit = []
-    for node in data:
-        if data[node][0]>0:
-            to_visit.append(node)
     start_time = time.time()
-    max_flow = find_max_flow(init, [], data, 0, len(to_visit), [])
-    print(max_flow)
-    print("commputation time:", time.time()-start_time)
-    assert max_flow==1651
-    quit()
-    flow = compute_flow(moves, data)
-    open_valves = []
-    for i in range(len(moves)):
-        print("=== Minute", i+1, "===")
-        move=moves[i]
-        f=flow[i]
-        if len(open_valves)>0:
-            print("Valve", open_valves, "are open")
-        else:
-            print("No valves are open")
-        if move in data.keys():
-            open_valves.append(move)
-            print("Open",move," ", end='')
-        else:
-            print(move,end='')
-        print(" current flow:", f)
-        print()
-    answear = None
-    #f = compute_flow(flow,data)
-    print("Final flow:", flow)
-    print("Total score:", sum(flow))
 
-    print(len(moves))
-    print(len(flow))
-    test = [20,
-20,
-20,
-33,
-33,
-33,
-33,
-54,
-54,
-54,
-54,
-54,
-54,
-54,
-54,
-76,
-76,
-76,
-76,
-79,
-79,
-79,
-81,
-81,
-81,
-81,
-81,
-81]
-    #print(test)
-    #print(sum(test))
-    s1=0
-    s2=0
-    for i in range(len(test)):
-        print(flow[i], test[i])
-        s1+=flow[i]
-        s2+=test[i]
-    print(s1,s2)
+    # Compute flow addition by going from current node to any other closed node:
+    closed_nodes = [node for node in data if data[node][0]>0]
+
+    find_best_path(data, path, vmap)
+
+    quit()
+    current = init
+    t=0
+    max_t=30
+    for n in closed_nodes:
+        p = path[(current, n)]
+        dist = len(p)-1
+        print("Dist", current,'->', n,":", dist)
+        flow = data[n][0]
+        print("Added flow:", flow)
+        factor = (max_t-t)-1-dist
+        addition = factor*flow
+        print("Total addition:", addition)
+        print("Time factor:", factor)
+        print()
+    print("commputation time:", time.time()-start_time)
     quit()
     if answear:
         print("Solution for day {:} part A:".format(DAY),answear)
@@ -260,7 +218,7 @@ if __name__=='__main__':
     input = get_input_data(args.filename, args.raw)
     case = args.case.lower()
     if case == 'a' or case == 'all':
-        partA(input)
+        partA(input, expected=1584)
     if case == 'b' or case == 'all':
         partB(input)
 
