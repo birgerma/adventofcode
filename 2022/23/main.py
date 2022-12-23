@@ -21,18 +21,13 @@ def format_input(input):
 
 from collections import defaultdict
 def move_elfes(elf_map, n_rounds=10):
-    #print("=== Round","INIT",'===')
-    #draw_map(elf_map)
     order_index = 0
-    #for it in range(n_it):
     it=0
     
     elfes= [coor for coor in elf_map if elf_map[coor]=='#']
     elfes = set(elfes)
     while it<n_rounds:
         it+=1
-        print("Round:", it)
-       # elfes= [coor for coor in elf_map if elf_map[coor]=='#']
         count = {}
         moves = []
         for x,y in elfes:
@@ -74,10 +69,6 @@ def move_elfes(elf_map, n_rounds=10):
             if count[(new_x, new_y)]==1:
                 elfes.remove((x,y))
                 elfes.add((new_x,new_y))
-                #elf_map[(x,y)]='.'
-                #elf_map[(new_x, new_y)]='#'
-        #print("=== Round",it,'===')
-        #draw_map(elf_map)
         order_index+=1
     return elfes, it
 
@@ -114,9 +105,7 @@ def partA(input, expected=None):
     data = format_input(input)
     elf_map, n_rounds = move_elfes(data)
     score = count_score(elf_map)
-    print("Score:", score)
-    print("N rounds:", n_rounds)
-    answear = None
+    answear = score
     
     if answear:
         print("Solution for day {:} part A:".format(DAY),answear)
@@ -128,11 +117,7 @@ def partB(input, expected=None):
     data = format_input(input)
     elf_map, n_rounds = move_elfes(data, n_rounds = float('inf'))
     score = count_score(elf_map)
-    print("Score:", score)
-    print("N rounds:", n_rounds)
-    answear = None
-
-    answear = None
+    answear = n_rounds
     if answear:
         print("Solution for day {:} part B:".format(DAY),answear)
     if expected:
@@ -161,6 +146,6 @@ if __name__=='__main__':
     if case == 'a' or case == 'all':
         partA(input, expected=4116)
     if case == 'b' or case == 'all':
-        partB(input, 984)
+        partB(input, expected=984)
 
 
