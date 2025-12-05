@@ -1,5 +1,5 @@
 # Correct part1: 1428
-# Correct day2: 
+# Correct day2: 8936
 
 import os, sys
 sys.path.append('..')
@@ -31,35 +31,49 @@ def get_neigbour_coor(x,y):
             neighbours.append((x1,y1))
     return neighbours
 
+def find_removable(data):
+    can_move = []
+    for y in range(H):
+        for x in range(W):
+            sym = data[y][x]
+            # print('x:',x,'y:',y,sym)
+            if sym=='@':
+                # print('Found roll')
+                neighbours = get_neigbour_coor(x,y)
+                count=0
+                # if x==7 and y==0:
+                #     print(neighbours)
+                for (x1,y1) in neighbours:
+                    # if x==7 and y==0:
+                    #     print(x1,y1,data[y1][x1])
+                    if data[y1][x1]=='@':
+                        count+=1
+                # print('Count:', count)
+                if count<4:
+                    can_move.append((x,y))
+                    move_map[y][x]=str(count)
+                # if x==7 and y==0:
+                #     exit(0)
 
-can_move = []
-for y in range(H):
-    for x in range(W):
-        sym = data[y][x]
-        print('x:',x,'y:',y,sym)
-        if sym=='@':
-            print('Found roll')
-            neighbours = get_neigbour_coor(x,y)
-            count=0
-            if x==7 and y==0:
-                print(neighbours)
-            for (x1,y1) in neighbours:
-                if x==7 and y==0:
-                    print(x1,y1,data[y1][x1])
-                if data[y1][x1]=='@':
-                    count+=1
-            print('Count:', count)
-            if count<4:
-                can_move.append((x,y))
-                move_map[y][x]=str(count)
-            # if x==7 and y==0:
-            #     exit(0)
+            # print('----')
+    return can_move
 
-        print('----')
-
+can_move = find_removable(data)
 print(can_move)
 print(len(can_move))
 
+def remove_rolls(can_move):
+    for (x,y) in can_move:
+        data[y][x]='x'
+    return data
 
+total_removed = can_move
+while(len(can_move)):
+    data = remove_rolls(can_move)
+    can_move = find_removable(data)
+    total_removed+=can_move
+    # break
+
+print(len(total_removed))
 # for line in move_map:
 #     print(line)
