@@ -1,5 +1,5 @@
-# Correct day1:
-# Correct day2: 
+# Correct part1:
+# Correct part2: 
 
 import os, sys
 sys.path.append('..')
