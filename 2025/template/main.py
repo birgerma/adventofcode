@@ -8,5 +8,6 @@ from lib.io import read_file
 
 fname = 'test'
 # fname = 'data'
-data = read_file(fname)[0].split(',')
+data = read_file(fname)
 
+print(data)
