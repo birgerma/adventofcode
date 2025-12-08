@@ -1,5 +1,5 @@
 # Correct part1: 26400
-# Correct part2: 
+# Correct part2: 8199963486
 
 import os, sys
 sys.path.append('..')
@@ -49,69 +49,118 @@ for d in distances:
     dist=d[0]
     # print(dist, data[i], data[j])
 
-connections = [[]]*len(data)
 # print('Init connections:', connections)
 # print(len(data))
-i=0
-while i<nConnections:
-    print('Connection number:', i)
-    print('Connecting:', distances[i])
-    print(data[distances[i][1]], '<->', data[distances[i][2]])
-    dist = distances[i]
-    print('dist:', dist)
-    print(dist[1], dist[2])
-    print(connections[dist[1]]+[dist[2]])
-    connections[dist[1]]=connections[dist[1]]+[dist[2]]
-    connections[dist[2]]=connections[dist[2]]+[dist[1]]
-    # connections[dist[2]].append(dist[1]) 
-    # print('Current connections:', connections)
-    # print(i)
-    i+=1
-    print('----')
-    # exit(0)
+def make_connections(connections, distances, nConnections):
+    i=0
+    while i<nConnections:
+        # print('Connection number:', i)
+        # print('Connecting:', distances[i])
+        # print(data[distances[i][1]], '<->', data[distances[i][2]])
+        dist = distances[i]
+        # print('dist:', dist)
+        # print(dist[1], dist[2])
+        # print(connections[dist[1]]+[dist[2]])
+        connections[dist[1]]=connections[dist[1]]+[dist[2]]
+        connections[dist[2]]=connections[dist[2]]+[dist[1]]
+        # connections[dist[2]].append(dist[1]) 
+        # print('Current connections:', connections)
+        # print(i)
+        i+=1
+        # print('----')
+        # exit(0)
+    return connections
 
 # print('Connections:', connections)
 
 # print('Find clusters')
-clusters = []
-for i in range(len(connections)):
-    # print(len(set(c)),set(c))
-    c = connections[i]
-    # print(i,':',len(c),c)
-    cluster = c
-    j=0
-    while j<len(cluster):
-    # for node in c:
-        node = cluster[j]
-        print('node:', node)
-        cluster = cluster + connections[node]
-        connections[node]=[]
-        j+=1
-    clusters.append(cluster)
+def get_clusters(connections):
+    clusters = []
+    for i in range(len(connections)):
+        # print(len(set(c)),set(c))
+        c = connections[i]
+        # print(i,':',len(c),c)
+        cluster = c
+        j=0
+        while j<len(cluster):
+        # for node in c:
+            node = cluster[j]
+            # print('node:', node)
+            cluster = cluster + connections[node]
+            connections[node]=[]
+            j+=1
+        clusters.append(cluster)
 
-tmp = set()
-for c in clusters:
-    print(c)
-    c = set(c)
-    str_v = ','.join(str(x) for x in c)
-    if str_v!='':
-        tmp.add(str_v)
-    # tmp.add[','.join(str(x) for x in c)]
-clusters = []
-for c in tmp:
-    clusters.append(c.split(','))
+    tmp = set()
+    for c in clusters:
+        # print(c)
+        c = set(c)
+        str_v = ','.join(str(x) for x in c)
+        if str_v!='':
+            tmp.add(str_v)
+        # tmp.add[','.join(str(x) for x in c)]
+    clusters = []
+    for c in tmp:
+        clusters.append([int(x) for x in c.split(',')])
 
-# print('Unsorted:', clusters)
-clusters = sorted(clusters, key=len, reverse=True)
-print('Sorted:')
-for c in clusters:
-    print(c)
-# print('-----')
-# print(tmp)
+    # print('Unsorted:', clusters)
+    clusters = sorted(clusters, key=len, reverse=True)
+    return clusters
+    # print('Sorted:')
+    # for c in clusters:
+    #     print(c)
+    # print('-----')
+    # print(tmp)
 
-answear = 1
-for i in range(3):
-    print(len(clusters[i]))
-    answear*=len(clusters[i])
 
-print(answear)
+def part1():
+    connections = [[]]*len(data)
+    connections = make_connections(connections, distances, nConnections)
+    clusters = get_clusters(connections)
+    answear = 1
+    for i in range(3):
+        # print(len(clusters[i]))
+        answear*=len(clusters[i])
+    return answear
+
+def part2():
+    connections = [[]]*len(data)
+    i=0
+    start = 5100
+    while True:
+        # print(distances)
+        # print()
+        # print(distances[i:])
+        # exit(0)
+        connections = make_connections(connections, distances[i:], start)
+        if start>1:
+            i=start
+        start = 1
+
+        # print(connections)
+        clusters = get_clusters(connections.copy())
+        # print(clusters)
+        print(i,len(clusters[0]))
+        # print(len(data))
+        # print()
+        if len(clusters[0])==len(data):
+            print('Done')
+            print('Last connection:', distances[i])
+            v1 = data[distances[i][1]]
+            v2 = data[distances[i][2]]
+            return v1[0]*v2[0]
+            exit(0)
+        i+=1
+        # if i>1:
+        #     exit(0)
+        # exit(0)
+
+    # answear = 1
+    # for i in range(3):
+    #     # print(len(clusters[i]))
+    #     answear*=len(clusters[i])
+    # return answear
+# print("Solution part 1:", part1())
+print("Solution part 2:", part2())
+
+
