@@ -4,17 +4,20 @@
 # Too low: 316303830
 #          2447025923
 
+# Part 2:
+# 113826948 (too low)
+
 import os, sys
 sys.path.append('..')
 
 from lib.io import read_file
 
 fname = 'test'
-fname = 'data'
+# fname = 'data'
 data = read_file(fname)
 
 def compute_area(p1, p2):
-    print(p1,p2)
+    # print(p1,p2)
     return (abs(p1[0]-p2[0])+1)*(abs(p1[1]-p2[1])+1)
 
 for i in range(len(data)):
@@ -28,8 +31,8 @@ import math
 # bottomRight = data[0]
 
 from operator import itemgetter
-xsort = sorted(data, key=itemgetter(0))
-ysort = sorted(data, key=itemgetter(1))
+xsort = sorted(data, key=itemgetter(0,1))
+ysort = sorted(data, key=itemgetter(1,0))
 
 minX = [xsort[0]]
 i=1
@@ -53,22 +56,122 @@ while ysort[i][0]==ysort[i-1][0]:
     maxY.append(ysort[i])
     i-=1
 
-ref = 2447025923
 # Brute force:
-area = 0
-for i in range(len(data)-1):
-    for j in range(i+1, len(data)):
-        a = compute_area(data[i], data[j])
-        if a>area:
-            area = a
-        if area>ref:
-            print("Found new case:", data[i], data[j])
-            print('Area:', area)
+def part1():
+    areas = []
+    pairs = []
+    for i in range(len(data)-1):
+        for j in range(i+1, len(data)):
+            a = compute_area(data[i], data[j])
+            areas.append(a)
+            pairs.append([data[i], data[j]])
+    return max(areas)
+        # if a>area:
+        #     area = a
+        # if area>ref:
+        #     print("Found new case:", data[i], data[j])
+        #     print('Area:', area)
 
-print(minX)
-print(maxX)
-print(minY)
-print(maxY)
+# print(minX)
+# print(maxX)
+# print(minY)
+# print(maxY)
+# print("Part 1 solution::", part1())
+
+
+# Part 2
+print('Part 2')
+# minX = xsort[0][0]
+# maxX = xsort[-1][0]
+# minY = ysort[0][1]
+# maxY = ysort[-1][1]
+# print('xrange:',minX,maxX)
+# print('yrange:', minY,maxY)
+print("Compute ranges")
+ymin = {}
+ymax = {}
+xmin = {}
+xmax = {}
+i = 0
+for p in xsort:
+    x = p[0]
+    y = p[1]
+    if x not in ymin or y<ymin[x]:
+        ymin[x]=y
+    if x not in ymax or y>ymax[x]:
+        ymax[x]=y
+
+    if y not in xmin or x<xmin[y]:
+        xmin[y]=x
+    if y not in xmax or x>xmax[y]:
+        xmax[y]=x
+
+startx = xsort[0][0]+1
+endx = xsort[-1][0]
+for x in range(startx, endx):
+    if x not in ymin:
+        ymin[x]=ymin[x-1]
+    if x not in ymax:
+        ymax[x]=ymax[x-1]
+
+print(ymin)
+print(ymax)
+
+print('X sorted:', xsort)
+area = 0
+pairs = []
+for i in range(len(xsort)-1):
+    p1 = xsort[i]
+    max_y = ymax[p1[0]]
+    min_y = ymin[p1[0]]
+    for j in range(i+1, len(xsort)):
+        p2 = xsort[j]
+        # print(ymax)
+        if p2[1]>max_y or p2[1]<min_y:
+            print('skip',p1, p2)
+            print('p1[0]=',p1[0])
+            print('min:',min_y, 'max:', max_y)
+            print('-----')
+            # exit(0)
+            continue
+        a = compute_area(p1, p2)
+        # print(p1, p2, 'max_y:', max_y)
+        if a > area:
+            area = a
+            pairs = [p1, p2]
+        print(p1, p2, 'area:', a)
+        # print(a)
+        # print(area)
+        # if p1[0]!=p2[0]: # Point in the middle, break
+        #     break
+        # a = compute_area(data[i], data[j])
+
+print('Max area:', area)
+print('Pairs:', pairs)
+
+exit(0)
+# Draw area
+points = set()
+for p in data:
+    points.add((p[0],p[1]))
+print(points)
+startx = xsort[0][0]
+endx = xsort[-1][0]
+starty = ysort[0][1]
+endy = ysort[-1][1]
+for y in range(starty,endy+1):
+    for x in range(startx, endx+1):
+        # print('x', end='')
+        # print('x=',x,'y=',y, (x,y) in points)
+        if (x,y) in points:
+            print('#', end='')
+        else:
+            print('.', end='')
+        
+    print()
+
+
+
 exit(0)
 minv = minX+maxX+minY+maxY
 
